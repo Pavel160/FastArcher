@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:15
+    container_name: fastarcher_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${DB_EXTERNAL_PORT}:${DB_INTERNAL_PORT}"
+
+  api:
+    build:
+      context: .
+      dockerfile: app/docker/Dockerfile.api
+    container_name: fastarcher_api
+    restart: always
+    ports:
+      - "${API_EXTERNAL_PORT}:${API_INTERNAL_PORT}"
+    env_file: .env
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+
+  bot:
+    build:
+      context: .
+      dockerfile: app/docker/Dockerfile.bot
+    container_name: fastarcher_bot
+    restart: always
+    env_file: .env
+    depends_on:
+      - api
+    volumes:
+      - .:/app
+
+
+
+volumes:
+  pgdata:
